@@ -1,7 +1,7 @@
 [package]
 name = "equivalent"
-version = "1.0.1"
-rust-version = "1.6"
+version = "1.1.0"
+rust-version = "1.28"
 license = "Apache-2.0 OR MIT"
 description = "Traits for key comparison in maps."
 repository = "https://github.com/cuviper/equivalent"
