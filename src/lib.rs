@@ -57,9 +57,10 @@
 //!     assert_eq!(q2.compare(&key), Ordering::Less);
 //!     assert_eq!(q3.compare(&key), Ordering::Greater);
 //!
-//!     // You cannot do this with the `RangeBounds::contains` method.
-//!     // assert!((q1..q3).contains(key));
-//!     // But you can do this with the `ComparableRangeBounds::compare_contains` method.
+//!     // You cannot use `Comparable` with the `RangeBounds::contains` method:
+//!     // assert!((q1..q3).contains(&key));
+//!
+//!     // But you can use the `ComparableRangeBounds::compare_contains` method:
 //!     assert!((q1..q3).compare_contains(&key));
 //! }
 //! ```
@@ -143,9 +144,9 @@ pub trait ComparableRangeBounds<Q: ?Sized>: RangeBounds<Q> {
     }
 }
 
-impl<R, T> ComparableRangeBounds<T> for R
+impl<R, Q> ComparableRangeBounds<Q> for R
 where
-    R: ?Sized + RangeBounds<T>,
-    T: ?Sized,
+    R: ?Sized + RangeBounds<Q>,
+    Q: ?Sized,
 {
 }
