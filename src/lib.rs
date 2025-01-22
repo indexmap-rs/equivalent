@@ -86,10 +86,10 @@ pub trait Equivalent<K: ?Sized> {
     fn equivalent(&self, key: &K) -> bool;
 }
 
-impl<Q: ?Sized, K: ?Sized> Equivalent<K> for Q
+impl<Q, K> Equivalent<K> for Q
 where
-    Q: Eq,
-    K: Borrow<Q>,
+    Q: ?Sized + Eq,
+    K: ?Sized + Borrow<Q>,
 {
     #[inline]
     fn equivalent(&self, key: &K) -> bool {
@@ -108,10 +108,10 @@ pub trait Comparable<K: ?Sized>: Equivalent<K> {
     fn compare(&self, key: &K) -> Ordering;
 }
 
-impl<Q: ?Sized, K: ?Sized> Comparable<K> for Q
+impl<Q, K> Comparable<K> for Q
 where
-    Q: Ord,
-    K: Borrow<Q>,
+    Q: ?Sized + Ord,
+    K: ?Sized + Borrow<Q>,
 {
     #[inline]
     fn compare(&self, key: &K) -> Ordering {
