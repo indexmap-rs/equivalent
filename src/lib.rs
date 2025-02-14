@@ -56,6 +56,12 @@
 //!     assert_eq!(q1.compare(&key), Ordering::Equal);
 //!     assert_eq!(q2.compare(&key), Ordering::Less);
 //!     assert_eq!(q3.compare(&key), Ordering::Greater);
+//!
+//!     // You cannot use `Comparable` with the `RangeBounds::contains` method:
+//!     // assert!((q1..q3).contains(&key));
+//!
+//!     // But you can use the `ComparableRangeBounds::compare_contains` method:
+//!     assert!((q1..q3).compare_contains(&key));
 //! }
 //! ```
 
@@ -63,6 +69,7 @@
 
 use core::borrow::Borrow;
 use core::cmp::Ordering;
+use core::ops::{Bound, RangeBounds};
 
 /// Key equivalence trait.
 ///
@@ -79,10 +86,10 @@ pub trait Equivalent<K: ?Sized> {
     fn equivalent(&self, key: &K) -> bool;
 }
 
-impl<Q: ?Sized, K: ?Sized> Equivalent<K> for Q
+impl<Q, K> Equivalent<K> for Q
 where
-    Q: Eq,
-    K: Borrow<Q>,
+    Q: ?Sized + Eq,
+    K: ?Sized + Borrow<Q>,
 {
     #[inline]
     fn equivalent(&self, key: &K) -> bool {
@@ -101,13 +108,45 @@ pub trait Comparable<K: ?Sized>: Equivalent<K> {
     fn compare(&self, key: &K) -> Ordering;
 }
 
-impl<Q: ?Sized, K: ?Sized> Comparable<K> for Q
+impl<Q, K> Comparable<K> for Q
 where
-    Q: Ord,
-    K: Borrow<Q>,
+    Q: ?Sized + Ord,
+    K: ?Sized + Borrow<Q>,
 {
     #[inline]
     fn compare(&self, key: &K) -> Ordering {
         Ord::cmp(self, key.borrow())
     }
+}
+
+/// `ComparableRangeBounds` is implemented as an extention to `RangeBounds` to
+/// allow for comparison of items with range bounds.
+pub trait ComparableRangeBounds<Q: ?Sized>: RangeBounds<Q> {
+    /// Returns `true` if `item` is contained in the range.
+    ///
+    /// # Examples
+    ///
+    /// See the [crate-level documentation](crate).
+    fn compare_contains<K>(&self, item: &K) -> bool
+    where
+        Q: Comparable<K>,
+        K: ?Sized,
+    {
+        (match self.start_bound() {
+            Bound::Included(start) => start.compare(item) != Ordering::Greater,
+            Bound::Excluded(start) => start.compare(item) == Ordering::Less,
+            Bound::Unbounded => true,
+        }) && (match self.end_bound() {
+            Bound::Included(end) => end.compare(item) != Ordering::Less,
+            Bound::Excluded(end) => end.compare(item) == Ordering::Greater,
+            Bound::Unbounded => true,
+        })
+    }
+}
+
+impl<R, Q> ComparableRangeBounds<Q> for R
+where
+    R: ?Sized + RangeBounds<Q>,
+    Q: ?Sized,
+{
 }
