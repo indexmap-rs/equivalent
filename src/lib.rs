@@ -111,3 +111,58 @@ where
         Ord::cmp(self, key.borrow())
     }
 }
+
+macro_rules! tuple_impl {
+    ($($T1:ident $T2:ident)*) => {
+        #[allow(nonstandard_style)]
+        impl<$($T1,)* $($T2,)*> Equivalent<($($T2,)*)> for ($($T1,)*)
+        where
+            $(
+                $T1: Eq,
+                $T2: Borrow<$T1>,
+            )*
+        {
+            #[inline]
+            fn equivalent(&self, key: &($($T2,)*)) -> bool {
+                let ($($T1,)*) = self;
+                let ($($T2,)*) = key;
+                $((*$T2).borrow() == $T1)&&*
+            }
+        }
+
+        #[allow(nonstandard_style)]
+        impl<$($T1,)* $($T2,)*> Comparable<($($T2,)*)> for ($($T1,)*)
+        where
+            $(
+                $T1: Ord,
+                $T2: Borrow<$T1>,
+            )*
+        {
+            #[inline]
+            fn compare(&self, key: &($($T2,)*)) -> Ordering {
+                let ($($T1,)*) = self;
+                let ($($T2,)*) = key;
+                $(
+                    let res = $T1.cmp($T2.borrow());
+                    if res != Ordering::Equal {
+                        return res;
+                    }
+                )*
+                Ordering::Equal
+            }
+        }
+    }
+}
+
+tuple_impl!(A a);
+tuple_impl!(A a B b);
+tuple_impl!(A a B b C c);
+tuple_impl!(A a B b C c D d);
+tuple_impl!(A a B b C c D d E e);
+tuple_impl!(A a B b C c D d E e F f);
+tuple_impl!(A a B b C c D d E e F f G g);
+tuple_impl!(A a B b C c D d E e F f G g H h);
+tuple_impl!(A a B b C c D d E e F f G g H h I i);
+tuple_impl!(A a B b C c D d E e F f G g H h I i J j);
+tuple_impl!(A a B b C c D d E e F f G g H h I i J j K k);
+tuple_impl!(A a B b C c D d E e F f G g H h I i J j K k L l);
